@@ -1,20 +1,18 @@
 # ---- builder ----
-FROM gradle:8.14.3-jdk21 AS builder
+FROM gradle:8.10.2-jdk21 AS builder
 WORKDIR /app
-
 COPY gradlew ./
 COPY gradle gradle
 COPY build.gradle.kts settings.gradle.kts ./
 RUN chmod +x gradlew
-
-# 1) Gradle wrapper 동작 확인
-RUN ./gradlew --version
-
-# 2) 의존성 레이어 캐시 (실패해도 계속 진행)
-RUN ./gradlew --no-daemon dependencies --stacktrace --info || true
-
-# 3) 소스 복사
+RUN ./gradlew --no-daemon dependencies || true
 COPY src src
+RUN ./gradlew --no-daemon clean bootJar -x test
 
-# 4) 진짜 빌드 (여기에 자세한 로그 옵션 추가)
-RUN ./gradlew --no-daemon clean bootJar -x test --stacktrace --info
+# ---- runtime ----
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
+ENV JAVA_OPTS="-XX:+UseContainerSupport"
+EXPOSE 8080
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
