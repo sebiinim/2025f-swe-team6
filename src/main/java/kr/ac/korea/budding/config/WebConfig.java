@@ -13,7 +13,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                         "http://localhost:3000",
                         "https://frontend-seven-beta-49.vercel.app",
-                        "https://*.vercel.app"
+                        "https://*.vercel.app",
+                        "https://editor.swagger.io"
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH",
                         "DELETE", "OPTIONS")
